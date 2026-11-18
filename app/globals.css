@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/* JAHEZ design tokens — owned by the orchestrator. Feature agents use these utilities, never redefine them. */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: var(--font-plex-arabic), var(--font-inter), sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Deep navy typography / chrome */
+  --color-navy-950: #050E1F;
+  --color-navy-900: #0B1F3A;
+  --color-navy-800: #132B4D;
+  --color-navy-700: #1E3A63;
+  --color-navy-600: #2E4C78;
+  --color-navy-500: #4A6591;
+
+  /* Teal accent */
+  --color-teal-50: #EFFCFA;
+  --color-teal-100: #CCF5EF;
+  --color-teal-200: #99EADF;
+  --color-teal-300: #5FD6C8;
+  --color-teal-400: #2DBFB0;
+  --color-teal-500: #0FA396;
+  --color-teal-600: #0A8379;
+  --color-teal-700: #0C6962;
+
+  /* Restrained industrial gold */
+  --color-gold-50: #FBF7EC;
+  --color-gold-100: #F4EACB;
+  --color-gold-300: #DEC27E;
+  --color-gold-400: #D1AE5C;
+  --color-gold-500: #C9A24B;
+  --color-gold-600: #A9853A;
+
+  /* Surfaces */
+  --color-canvas: #F6F7F9;
+  --color-surface: #FFFFFF;
+  --color-line: #E5E8EE;
+  --color-muted: #64748B;
+
+  --shadow-card: 0 1px 2px rgba(11, 31, 58, 0.04), 0 4px 16px -4px rgba(11, 31, 58, 0.06);
+  --shadow-lift: 0 2px 4px rgba(11, 31, 58, 0.05), 0 16px 40px -12px rgba(11, 31, 58, 0.18);
+
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  background: var(--color-canvas);
+  color: var(--color-navy-900);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir="rtl"], .font-arabic {
+  font-family: var(--font-arabic);
+}
+
+::selection {
+  background: var(--color-teal-100);
+  color: var(--color-navy-900);
+}
+
+/* Subtle dotted grid for hero / empty states */
+.bg-grid {
+  background-image: radial-gradient(rgba(11, 31, 58, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.bg-grid-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
