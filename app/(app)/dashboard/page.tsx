@@ -1,6 +1,10 @@
 "use client";
-import { PageHeader } from "@/components/shell/shared";
 
-export default function Page() {
-  return <PageHeader eyebrow="Coming together" title="Overview" description="Owned by Agent B." />;
+import { ApproachableDashboard } from "@/components/product/dashboard-approachable";
+import { CommandCenterDashboard } from "@/components/product/dashboard-command";
+import { useActiveFactory } from "@/lib/store";
+
+export default function DashboardPage() {
+  const { factory } = useActiveFactory();
+  return factory.experience === "command-center" ? <CommandCenterDashboard /> : <ApproachableDashboard />;
 }

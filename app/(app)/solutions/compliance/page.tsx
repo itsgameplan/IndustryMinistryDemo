@@ -1,6 +1,12 @@
 "use client";
-import { PageHeader } from "@/components/shell/shared";
 
-export default function Page() {
-  return <PageHeader eyebrow="Coming together" title="Compliance" description="Owned by Agent C." />;
+import { SolutionGate } from "@/components/shell/shared";
+import { ComplianceWorkspace } from "@/components/solutions/compliance/compliance-workspace";
+
+export default function CompliancePage() {
+  return (
+    <SolutionGate solutionId="compliance">
+      <ComplianceWorkspace />
+    </SolutionGate>
+  );
 }

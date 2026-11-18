@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { FACTORIES } from "@/lib/data/factories";
 import { SOLUTIONS } from "@/lib/data/solutions";
 import { REQUIREMENTS } from "@/lib/data/tiers";
@@ -152,13 +152,11 @@ export function maturityScore(completed: string[]) {
 
 /** True once zustand has rehydrated from localStorage — gate persisted UI on this to avoid hydration mismatch. */
 export function useHydrated() {
-  const [h, setH] = useState(false);
-  useEffect(() => {
-    const unsub = useJahez.persist.onFinishHydration(() => setH(true));
-    if (useJahez.persist.hasHydrated()) setH(true);
-    return unsub;
-  }, []);
-  return h;
+  return useSyncExternalStore(
+    (cb) => useJahez.persist.onFinishHydration(cb),
+    () => useJahez.persist.hasHydrated(),
+    () => false
+  );
 }
 
 /** Convenience: active factory profile + state. */

@@ -1,6 +1,12 @@
 "use client";
-import { PageHeader } from "@/components/shell/shared";
 
-export default function Page() {
-  return <PageHeader eyebrow="Coming together" title="AI Website" description="Owned by Agent C." />;
+import { SolutionGate } from "@/components/shell/shared";
+import { WebsiteBuilder } from "@/components/solutions/website/website-builder";
+
+export default function WebsitePage() {
+  return (
+    <SolutionGate solutionId="website">
+      <WebsiteBuilder />
+    </SolutionGate>
+  );
 }

@@ -95,7 +95,7 @@ function FactorySwitcher() {
   );
 }
 
-function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
+function NavLink({ item, onClick, className }: { item: NavItem; onClick?: () => void; className?: string }) {
   const pathname = usePathname();
   const active = pathname === item.href || (item.href !== "/solutions" && pathname.startsWith(item.href + "/")) || (item.href === "/solutions" && pathname === "/solutions");
   const Icon = item.icon;
@@ -103,11 +103,11 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
     <Link
       href={item.href}
       onClick={onClick}
-      className={cn("group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors", active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white")}
+      className={cn("group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors", active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white", className)}
     >
       {active ? <motion.span layoutId="nav-active" className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-teal-400" /> : null}
-      <Icon className={cn("size-4", active ? "text-teal-300" : "text-white/40 group-hover:text-white/70")} />
-      {item.label}
+      <Icon className={cn("size-4 shrink-0", active ? "text-teal-300" : "text-white/40 group-hover:text-white/70")} />
+      <span className="truncate">{item.label}</span>
     </Link>
   );
 }
@@ -130,7 +130,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             const unlocked = n.solution && state.unlockedSolutions.includes(n.solution);
             return (
               <div key={n.href} className="relative">
-                <NavLink item={n} onClick={onNavigate} />
+                <NavLink item={n} onClick={onNavigate} className="pr-16" />
                 <span className={cn("pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-1.5 py-px text-[9.5px] font-semibold uppercase tracking-wide", unlocked ? "bg-teal-400/15 text-teal-300" : "bg-white/5 text-white/35")}>
                   {unlocked ? "Live" : "Locked"}
                 </span>

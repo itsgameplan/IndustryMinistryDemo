@@ -1,6 +1,7 @@
 "use client";
-import { PageHeader } from "@/components/shell/shared";
 
-export default function Page() {
-  return <PageHeader eyebrow="Coming together" title="Maturity assessment" description="Owned by Agent B." />;
+import { AssessmentFlow } from "@/components/product/assessment-flow";
+
+export default function AssessmentPage() {
+  return <AssessmentFlow />;
 }
