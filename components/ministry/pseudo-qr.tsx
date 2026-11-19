@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { seededRandom } from "@/lib/data/national";
+import { useT } from "@/lib/i18n";
 
 const SIZE = 25;
 
@@ -16,6 +17,7 @@ function finderZone(x: number, y: number) {
  * scannable QR code — no library, no encoded payload.
  */
 export function PseudoQr({ seed, className, size = 148 }: { seed: string; className?: string; size?: number }) {
+  const t = useT();
   const modules = useMemo(() => {
     const rand = seededRandom(`qr:${seed}`);
     const cells: [number, number][] = [];
@@ -35,7 +37,7 @@ export function PseudoQr({ seed, className, size = 148 }: { seed: string; classN
 
   const finders: [number, number][] = [[0, 0], [SIZE - 7, 0], [0, SIZE - 7]];
   return (
-    <svg viewBox={`-2 -2 ${SIZE + 4} ${SIZE + 4}`} width={size} height={size} className={className} role="img" aria-label="Decorative verification pattern (sample, not a scannable QR code)" shapeRendering="crispEdges">
+    <svg viewBox={`-2 -2 ${SIZE + 4} ${SIZE + 4}`} width={size} height={size} className={className} role="img" aria-label={t("Decorative verification pattern (sample, not a scannable QR code)")} shapeRendering="crispEdges">
       <rect x={-2} y={-2} width={SIZE + 4} height={SIZE + 4} fill="#fff" />
       {modules.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#0B1F3A" />)}
       {finders.map(([x, y]) => (

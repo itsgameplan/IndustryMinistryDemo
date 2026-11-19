@@ -15,6 +15,18 @@ npm run build && npm start
 
 Optional: copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` to use Google Maps satellite imagery. Without it the satellite module uses Esri World Imagery tiles (and a stylised fallback if offline).
 
+## Reset before a presentation
+
+All demo state lives in the browser (localStorage). With the app running:
+
+```bash
+npm run demo:reset            # opens http://localhost:3210/reset in your default browser
+npm run demo:reset -- --port 3000
+npm run demo:reset -- --no-open   # just print the link
+```
+
+The `/reset` page clears deployments, installed services, workspace edits, registered factories and notifications, makes any other open Jahez tabs reload, then returns to the start page. If you present from another browser or profile, open `/reset` there as well.
+
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn-style primitives (Radix) · Motion · Zustand (localStorage persistence) · Recharts · React Three Fiber + Drei · Leaflet / Google Maps · Lucide.
@@ -30,7 +42,12 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn-st
 | Simulated deployment engine (45 s, survives navigation/refresh) | `components/shell/deployment-ticker.tsx` |
 | App shell, factory switcher, notifications, Reset Demo | `components/shell/` |
 | UI primitives | `components/ui/index.tsx` |
-| Pages | `app/page.tsx` (landing), `app/(app)/*` (factory app), `app/verify`, `app/ministry` |
+| Pages | `app/page.tsx` (landing), `app/(app)/*` (factory app), `app/verify`, `app/ministry`, `app/register` (simulated sign-up) |
+| IMC service catalogue (21 services, 9 categories) | `lib/data/services.ts` |
+| Service recommendation engine (deterministic) | `lib/recommendations.ts` |
+| Unified deployment scripts (solutions 45 s, services ≈12 s) | `lib/data/deployables.ts` |
+| Services marketplace, service pages, coverage matrix | `app/(app)/services/`, `components/services/marketplace/` |
+| Service workspaces (shared kit + registry) | `components/services/kit.tsx`, `components/services/registry.tsx`, `components/services/workspaces/<group>/<serviceId>.tsx` |
 
 Tier rule: a factory's tier is the highest tier whose requirements — and every lower tier's — are all satisfied (`computeTier`). Deployed solutions satisfy specific requirements; results are always labelled *provisional until evidence review and inspection*.
 
@@ -48,4 +65,13 @@ Tier rule: a factory's tier is the highest tier whose requirements — and every
 10. **Licence verification** → check `DEMO-LIC-AN-0417` / `DEMO-LIC-DP-0982`.
 11. **Ministry dashboard** → nationwide (simulated) transformation view; the two demo factories update live.
 
-Use **Reset demo** in the top bar to restore the initial state.
+### Phase 2 — competitiveness services & sign-up
+
+12. **AI services marketplace** (sidebar) → see services recommended for the active factory, browse all 21 IMC services by category, open a service's details (impact, prerequisites, timeline, pricing model), then **Activate demo**. A ≈12 s AI build runs (it keeps going if you navigate away) and the workspace opens.
+    - Al Noor: brand identity, digital export marketing, sales chatbot (send a lead to the CRM), corporate strategy.
+    - Delta: enterprise BI, process mining, Balanced Scorecard, export intelligence, product compliance, traceability.
+13. **Request service** from any service, or a custom request, and track it under the *Requests* tab.
+14. **Service coverage matrix** → partnership view of feasibility, timelines, pricing models and proposed Jahez extensions.
+15. From the landing page choose **Register your factory**: create an account (demo OTP `123456`), enter factory details, watch the AI assessment, review the proposed (unverified) tier and recommendations, preview the illustrative subscription, and activate. The new factory appears in the sidebar switcher alongside the two demo accounts.
+
+Deployed services never change a factory's maturity tier — tiers require verified evidence. Use **Reset demo** in the top bar to restore the initial state (this also removes registered factories).

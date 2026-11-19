@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 type Block =
   | { kind: "h"; text: string; ai: boolean }
@@ -51,6 +52,7 @@ export function checklistLines(body: string) {
 
 /** Rich read view for the markdown-ish document body. */
 export function DocBody({ body, checked, onToggle, rtlTitle }: { body: string; checked: Set<number>; onToggle: (line: number) => void; rtlTitle?: string }) {
+  const t = useT();
   const blocks = parseBody(body);
   let hCount = 0;
   return (
@@ -67,20 +69,20 @@ export function DocBody({ body, checked, onToggle, rtlTitle }: { body: string; c
                 ) : (
                   <span className="grid size-6 place-items-center rounded-md bg-navy-900/[0.05] text-[11px] font-bold tabular-nums text-navy-600">{hCount}</span>
                 )}
-                {b.text}
-                {b.ai ? <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-teal-700 ring-1 ring-inset ring-teal-200">AI suggestion</span> : null}
+                {t(b.text)}
+                {b.ai ? <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-teal-700 ring-1 ring-inset ring-teal-200">{t("AI suggestion")}</span> : null}
               </h3>
             );
           }
           case "p":
-            return <p key={i} className="mb-3 text-navy-700">{b.text}</p>;
+            return <p key={i} className="mb-3 text-navy-700">{t(b.text)}</p>;
           case "ul":
             return (
               <ul key={i} className="mb-3 space-y-1.5 ps-1">
                 {b.items.map((it, j) => (
                   <li key={j} className="flex gap-2.5">
                     <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-teal-500" />
-                    <Inline text={it} />
+                    <Inline text={t(it)} />
                   </li>
                 ))}
               </ul>
@@ -92,7 +94,7 @@ export function DocBody({ body, checked, onToggle, rtlTitle }: { body: string; c
                   <li key={j} className="relative flex gap-3 pb-3 last:pb-0">
                     {j < b.items.length - 1 ? <span className="absolute start-[13px] top-7 bottom-0 w-px bg-line" aria-hidden /> : null}
                     <span className="relative grid size-7 shrink-0 place-items-center rounded-full border border-line bg-white text-xs font-semibold tabular-nums text-navy-700 shadow-sm">{j + 1}</span>
-                    <span className="pt-0.5"><Inline text={it} /></span>
+                    <span className="pt-0.5"><Inline text={t(it)} /></span>
                   </li>
                 ))}
               </ol>
@@ -108,12 +110,12 @@ export function DocBody({ body, checked, onToggle, rtlTitle }: { body: string; c
                         role="checkbox"
                         aria-checked={on}
                         onClick={() => onToggle(it.line)}
-                        className={cn("flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400", on ? "border-teal-200 bg-teal-50/60" : "border-line bg-white hover:border-navy-500/30")}
+                        className={cn("flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400", on ? "border-teal-200 bg-teal-50/60" : "border-line bg-white hover:border-navy-500/30")}
                       >
                         <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border transition-colors", on ? "border-teal-500 bg-teal-500 text-white" : "border-navy-500/30 bg-white")}>
                           {on ? <Check className="size-3.5" strokeWidth={3} /> : null}
                         </span>
-                        <span className={cn("text-[14px]", on && "text-navy-600 line-through decoration-navy-500/30")}>{it.text}</span>
+                        <span className={cn("text-[14px]", on && "text-navy-600 line-through decoration-navy-500/30")}>{t(it.text)}</span>
                       </button>
                     </li>
                   );

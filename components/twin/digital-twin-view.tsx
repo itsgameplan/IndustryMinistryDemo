@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Activity, AlertTriangle, Cpu, Radio } from "lucide-react";
-import { Card } from "@/components/ui";
-import { PageHeader } from "@/components/shell/shared";
+import { AlertTriangle, ChevronRight, Cpu, Radio, Zap } from "lucide-react";
 import { DELTA_MACHINES } from "@/lib/data/machines";
 import { useLiveTelemetry } from "@/lib/telemetry";
 import { useActiveFactory } from "@/lib/store";
 import type { MachineReading } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { CameraGoal, TwinLayers } from "./constants";
 import { TwinPanel } from "./twin-panel";
 import { TwinMachineDock, TwinTopBar } from "./twin-overlay";
@@ -20,6 +20,7 @@ const FactoryScene = dynamic(() => import("./factory-scene"), { ssr: false, load
 const RANK: Record<MachineReading["status"], number> = { healthy: 0, watch: 1, critical: 2 };
 
 export function TwinLoading({ className }: { className?: string }) {
+  const t = useT();
   return (
     <div className={`absolute inset-0 z-30 grid place-items-center bg-[radial-gradient(ellipse_at_50%_40%,#1E3A63_0%,#0B1F3A_55%,#050E1F_100%)] ${className ?? ""}`}>
       <div className="bg-grid-dark absolute inset-0 opacity-60" />
@@ -29,8 +30,8 @@ export function TwinLoading({ className }: { className?: string }) {
           <span className="absolute inset-2 animate-pulse-ring rounded-full border border-gold-400/40 [animation-delay:0.6s]" />
           <Cpu className="relative size-6 text-teal-300" />
         </div>
-        <div className="mt-5 text-sm font-semibold tracking-tight text-white">Initialising digital twin…</div>
-        <div className="mt-1 text-xs text-white/50">Loading shop-floor geometry and IoT sensor streams</div>
+        <div className="mt-5 text-sm font-semibold tracking-tight text-white">{t("Initialising digital twin…")}</div>
+        <div className="mt-1 text-xs text-white/50">{t("Loading shop-floor geometry and IoT sensor streams")}</div>
         <div className="mt-4 h-1 w-44 overflow-hidden rounded-full bg-white/10">
           <div className="animate-shimmer h-full w-full bg-[linear-gradient(90deg,transparent_0%,#2DBFB0_50%,transparent_100%)] bg-[length:200%_100%]" />
         </div>
@@ -40,6 +41,7 @@ export function TwinLoading({ className }: { className?: string }) {
 }
 
 export function DigitalTwinView() {
+  const t = useT();
   const params = useSearchParams();
   const pathname = usePathname();
   const reduced = useReducedMotion();
@@ -105,6 +107,17 @@ export function DigitalTwinView() {
     [focus]
   );
   const onReady = useCallback(() => setReady(true), []);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    const onChange = () => setFullscreen(document.fullscreenElement === stageRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void stageRef.current?.requestFullscreen?.().catch(() => undefined);
+  }, []);
   // Safety net: never leave the loading veil up (e.g. if the first frame is delayed by a background tab).
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 5000);
@@ -123,29 +136,31 @@ export function DigitalTwinView() {
 
   return (
     <div>
-      <PageHeader
-        eyebrow="Tier 3 · Connected operations"
-        title="3D factory digital twin"
-        description="A live, spatial view of Delta Precision's shop floor. Every machine streams IoT telemetry into the twin — select a machine or sensor to inspect it."
-        actions={
-          <>
-            <HeaderPill icon={<Cpu />} label="Machines online" value={`${DELTA_MACHINES.length}/${DELTA_MACHINES.length}`} />
-            <HeaderPill icon={<Radio />} label="IoT sensors" value={String(stats.sensors)} />
-            <HeaderPill icon={<Activity />} label="Avg. efficiency" value={`${stats.eff.toFixed(1)}%`} />
-            <HeaderPill icon={<AlertTriangle />} label={maintenanceUnlocked ? "At-risk assets" : "Threshold alerts"} value={String(maintenanceUnlocked ? stats.atRisk : alerts.length)} warn={(maintenanceUnlocked ? stats.atRisk : alerts.length) > 0} />
-          </>
-        }
-      />
+      <header className="mb-7 flex flex-col gap-6 2xl:flex-row 2xl:items-end 2xl:justify-between">
+        <motion.div initial={reduced ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-muted">
+            {t("Connected Operations")} <ChevronRight className="size-3.5 rtl:-scale-x-100" /> {t("Tier 3")}
+          </div>
+          <h1 className="mt-2 text-3xl font-bold tracking-[-0.02em] text-navy-900 md:text-[40px]">{t("3D Factory Digital Twin")}</h1>
+          <p className="mt-2 text-[15px] text-muted md:text-base">{t("A live, spatial view of your production floor with real-time machine data, telemetry, and AI insights.")}</p>
+        </motion.div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <HeaderPill icon={<Cpu />} color="#10B981" label={t("Machines Online")} value={`${DELTA_MACHINES.length}/${DELTA_MACHINES.length}`} i={0} />
+          <HeaderPill icon={<Radio />} color="#14B8A6" label={t("IoT Sensors")} value={String(stats.sensors)} i={1} />
+          <HeaderPill icon={<Zap />} color="#10B981" label={t("Avg. Efficiency")} value={`${stats.eff.toFixed(1)}%`} i={2} />
+          <HeaderPill icon={<AlertTriangle />} color="#F59E0B" label={maintenanceUnlocked ? t("At-Risk Assets") : t("Threshold Alerts")} value={String((maintenanceUnlocked ? stats.atRisk : alerts.length))} i={3} />
+        </div>
+      </header>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="relative h-[64vh] min-h-[440px] overflow-hidden rounded-2xl bg-[radial-gradient(ellipse_at_50%_30%,#1E3A63_0%,#0B1F3A_52%,#050E1F_100%)] shadow-lift ring-1 ring-navy-900/20 lg:h-[70vh]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div ref={stageRef} className={cn("relative h-[64vh] min-h-[480px] overflow-hidden bg-[radial-gradient(ellipse_at_50%_30%,#1E3A63_0%,#0B1F3A_52%,#050E1F_100%)] shadow-[0_30px_60px_-30px_rgba(5,14,31,0.6)] ring-1 ring-navy-900/10 lg:h-[76vh]", fullscreen ? "rounded-none" : "rounded-[28px]")}>
           <div className="bg-grid-dark pointer-events-none absolute inset-0 opacity-50" />
           {!webgl ? (
             <div className="absolute inset-0 z-40 grid place-items-center p-8 text-center text-white">
               <div className="max-w-sm">
                 <AlertTriangle className="mx-auto mb-3 size-8 text-gold-400" />
-                <div className="text-base font-semibold">3D view unavailable on this device</div>
-                <p className="mt-1 text-sm text-white/60">WebGL is disabled or unsupported in this browser. Live machine readings remain available in the side panel and the machine dock below.</p>
+                <div className="text-base font-semibold">{t("3D view unavailable on this device")}</div>
+                <p className="mt-1 text-sm text-white/60">{t("WebGL is disabled or unsupported in this browser. Live machine readings remain available in the side panel and the machine dock below.")}</p>
               </div>
             </div>
           ) : null}
@@ -161,7 +176,7 @@ export function DigitalTwinView() {
             onSelectSensor={selectSensorFromScene}
             onReady={onReady}
           /> : null}
-          <TwinTopBar layers={layers} onToggle={(k) => setLayers((l) => ({ ...l, [k]: !l[k] }))} onReset={resetView} onFocus={() => focus(selectedId)} canFocus={Boolean(selectedId)} />
+          <TwinTopBar layers={layers} onToggle={(k) => setLayers((l) => ({ ...l, [k]: !l[k] }))} onReset={resetView} onFocus={() => focus(selectedId)} canFocus={Boolean(selectedId)} fullscreen={fullscreen} onFullscreen={toggleFullscreen} />
           <TwinMachineDock machines={DELTA_MACHINES} readings={readings} selectedId={selectedId} onSelect={selectFromDock} />
           <AnimatePresence>
             {!ready && webgl ? (
@@ -172,7 +187,7 @@ export function DigitalTwinView() {
           </AnimatePresence>
         </div>
 
-        <Card className="overflow-hidden lg:h-[70vh]">
+        <div className="scrollbar-thin -me-2 pe-2 lg:h-[76vh] lg:overflow-y-auto">
           <TwinPanel
             machine={machine}
             reading={reading}
@@ -183,21 +198,28 @@ export function DigitalTwinView() {
             onSelectSensor={selectSensorFromPanel}
             onFocus={() => focus(machine.id)}
           />
-        </Card>
+        </div>
       </div>
-      <p className="mt-3 text-xs text-muted">Drag to orbit · scroll to zoom · right-drag to pan. All values are simulated telemetry for demonstration purposes.</p>
+      <p className="mt-4 text-xs text-muted">{t("Drag to orbit · scroll to zoom · simulated telemetry")}</p>
     </div>
   );
 }
 
-function HeaderPill({ icon, label, value, warn }: { icon: React.ReactNode; label: string; value: string; warn?: boolean }) {
+function HeaderPill({ icon, color, label, value, i }: { icon: React.ReactNode; color: string; label: string; value: string; i: number }) {
+  const reduce = useReducedMotion();
   return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-line bg-white px-3 py-2 shadow-card">
-      <span className={`grid size-7 place-items-center rounded-lg [&_svg]:size-3.5 ${warn ? "bg-amber-50 text-amber-600" : "bg-teal-50 text-teal-600"}`}>{icon}</span>
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.1 + i * 0.06 }}
+      whileHover={reduce ? undefined : { y: -2 }}
+      className="flex items-center gap-3.5 rounded-[20px] border border-white bg-white/80 px-5 py-4 shadow-[0_1px_2px_rgba(11,31,58,0.04),0_12px_32px_-18px_rgba(11,31,58,0.22)] backdrop-blur"
+    >
+      <span className="[&_svg]:size-6" style={{ color }}>{icon}</span>
       <div className="leading-tight">
-        <div className="text-[10px] font-medium uppercase tracking-wider text-muted">{label}</div>
-        <div className="text-sm font-semibold tabular-nums text-navy-900">{value}</div>
+        <div className="whitespace-nowrap text-[13px] text-navy-700">{label}</div>
+        <div className="mt-1 text-xl font-semibold tabular-nums text-navy-900">{value}</div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -3,7 +3,7 @@
 // generated deterministically. Nothing here is an official Ministry of Industry statistic or record.
 
 import { FACTORIES } from "@/lib/data/factories";
-import type { FactoryId, TierLevel } from "@/lib/types";
+import type { DemoFactoryId, TierLevel } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Deterministic pseudo-randomness
@@ -166,16 +166,16 @@ function buildCube(): CubeCell[] {
 export const BASE_CUBE: CubeCell[] = buildCube();
 
 /** Where the live demo factories sit in the cube. */
-export const LIVE_FACTORY_CELL: Record<FactoryId, { governorate: string; sector: SectorId }> = {
+export const LIVE_FACTORY_CELL: Record<DemoFactoryId, { governorate: string; sector: SectorId }> = {
   "al-noor": { governorate: "giza", sector: "textiles" },
   delta: { governorate: "sharqia", sector: "engineering" },
 };
 
 /** Add the live demo factories (at their current tier) into the cube. */
-export function withLiveFactories(cube: CubeCell[], live: Record<FactoryId, TierLevel>): CubeCell[] {
+export function withLiveFactories(cube: CubeCell[], live: Record<DemoFactoryId, TierLevel>): CubeCell[] {
   return cube.map((c) => {
     let tiers = c.tiers;
-    for (const id of Object.keys(live) as FactoryId[]) {
+    for (const id of Object.keys(live) as DemoFactoryId[]) {
       const pos = LIVE_FACTORY_CELL[id];
       if (pos.governorate === c.governorate && pos.sector === c.sector) {
         tiers = [...tiers] as TierCounts;
@@ -349,7 +349,7 @@ export interface RegistryRecord {
   expiresOn: string;
   employees: number;
   /** Set for the two live demo factories — tier/score are then read from the store. */
-  live?: FactoryId;
+  live?: DemoFactoryId;
   /** Static tier for fictional records; baseline tier for live factories. */
   tier: TierLevel;
   score: number;
@@ -357,7 +357,7 @@ export interface RegistryRecord {
   lastInspection?: string;
 }
 
-const liveRecord = (id: FactoryId, sector: SectorId, issuedOn: string, expiresOn: string, lastInspection?: string): RegistryRecord => {
+const liveRecord = (id: DemoFactoryId, sector: SectorId, issuedOn: string, expiresOn: string, lastInspection?: string): RegistryRecord => {
   const f = FACTORIES[id];
   return {
     licenseNo: f.licenseNo,

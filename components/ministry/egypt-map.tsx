@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import type { Governorate } from "@/lib/data/national";
+import { useLocale, useT } from "@/lib/i18n";
 
 // Simple equirectangular projection tuned for Egypt's bounding box. Illustrative only.
 const K = 40;
@@ -50,6 +51,9 @@ export function scoreColor(score: number) {
 }
 
 export function EgyptMap({ data, selected, onSelect }: { data: MapDatum[]; selected: string | "all"; onSelect: (id: string) => void }) {
+  const t = useT();
+  const { locale } = useLocale();
+  const ar = locale === "ar";
   const [hover, setHover] = useState<string | null>(null);
   const max = useMemo(() => Math.max(1, ...data.map((d) => d.total)), [data]);
   const points = useMemo(
@@ -65,7 +69,7 @@ export function EgyptMap({ data, selected, onSelect }: { data: MapDatum[]; selec
 
   return (
     <div className="relative">
-      <svg viewBox={`-8 -8 ${W + 16} ${H + 16}`} className="h-auto w-full" role="group" aria-label="Illustrative map of Egypt showing onboarded factories per governorate (simulated data)">
+      <svg viewBox={`-8 -8 ${W + 16} ${H + 16}`} className="h-auto w-full" role="group" aria-label={t("Illustrative map of Egypt showing onboarded factories per governorate (simulated data)")}>
         <defs>
           <linearGradient id="egypt-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#F7F9FB" />
@@ -82,9 +86,9 @@ export function EgyptMap({ data, selected, onSelect }: { data: MapDatum[]; selec
           <path key={i} d={toPath(p)} fill="none" stroke="#7CC6E6" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
         ))}
         <path d={toPath(SUEZ_CANAL)} fill="none" stroke="#7CC6E6" strokeWidth={1} strokeDasharray="2 2" />
-        <text x={project(28.2, 25.4)[0]} y={project(28.2, 25.4)[1]} className="fill-navy-900/20 text-[11px] font-semibold uppercase tracking-[0.3em]">Western Desert</text>
-        <text x={project(34.0, 31.75)[0]} y={project(34.0, 31.75)[1] - 6} textAnchor="end" className="fill-navy-900/25 text-[9px] font-medium italic">Mediterranean Sea</text>
-        <text x={project(35.6, 25.4)[0]} y={project(35.6, 25.4)[1]} className="fill-navy-900/25 text-[9px] font-medium italic">Red Sea</text>
+        <text x={project(28.2, 25.4)[0]} y={project(28.2, 25.4)[1]} className="fill-navy-900/20 text-[11px] font-semibold uppercase tracking-[0.3em]">{t("Western Desert")}</text>
+        <text x={project(34.0, 31.75)[0]} y={project(34.0, 31.75)[1] - 6} textAnchor="end" className="fill-navy-900/25 text-[9px] font-medium italic">{t("Mediterranean Sea")}</text>
+        <text x={project(35.6, 25.4)[0]} y={project(35.6, 25.4)[1]} className="fill-navy-900/25 text-[9px] font-medium italic">{t("Red Sea")}</text>
 
         {points.map((p, i) => {
           const isSel = selected === p.governorate.id;
@@ -95,7 +99,7 @@ export function EgyptMap({ data, selected, onSelect }: { data: MapDatum[]; selec
               role="button"
               tabIndex={0}
               aria-pressed={isSel}
-              aria-label={`${p.governorate.name}: ${p.total.toLocaleString("en-US")} factories, average maturity ${Math.round(p.avgScore)}`}
+              aria-label={t("{name}: {count} factories, average maturity {score}", { name: ar ? p.governorate.nameAr : p.governorate.name, count: p.total.toLocaleString("en-US"), score: Math.round(p.avgScore) })}
               className="cursor-pointer outline-none"
               onMouseEnter={() => setHover(p.governorate.id)}
               onMouseLeave={() => setHover(null)}
@@ -127,13 +131,13 @@ export function EgyptMap({ data, selected, onSelect }: { data: MapDatum[]; selec
           style={{ left: `${Math.min(80, Math.max(20, ((active.x + 8) / (W + 16)) * 100))}%`, top: `calc(${((active.y + 8) / (H + 16)) * 100}% - ${active.r + 8}px)` }}
         >
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-semibold text-navy-900">{active.governorate.name}</span>
-            <span className="font-arabic text-muted" lang="ar">{active.governorate.nameAr}</span>
+            <span className="font-semibold text-navy-900">{ar ? active.governorate.nameAr : active.governorate.name}</span>
+            {ar ? <span className="text-muted" lang="en">{active.governorate.name}</span> : <span className="font-arabic text-muted" lang="ar">{active.governorate.nameAr}</span>}
           </div>
           <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-muted">
-            <span>Factories</span><span className="text-right font-medium tabular-nums text-navy-900">{active.total.toLocaleString("en-US")}</span>
-            <span>Avg maturity</span><span className="text-right font-medium tabular-nums text-navy-900">{Math.round(active.avgScore)}</span>
-            <span>Tier 3+</span><span className="text-right font-medium tabular-nums text-navy-900">{active.tier3PlusPct.toFixed(1)}%</span>
+            <span>{t("Factories")}</span><span className="text-end font-medium tabular-nums text-navy-900">{active.total.toLocaleString("en-US")}</span>
+            <span>{t("Avg maturity")}</span><span className="text-end font-medium tabular-nums text-navy-900">{Math.round(active.avgScore)}</span>
+            <span>{t("Tier 3+")}</span><span className="text-end font-medium tabular-nums text-navy-900">{active.tier3PlusPct.toFixed(1)}%</span>
           </div>
         </div>
       ) : null}
@@ -145,15 +149,15 @@ export function EgyptMap({ data, selected, onSelect }: { data: MapDatum[]; selec
             <span className="size-3 rounded-full border border-navy-500/40" />
             <span className="size-4 rounded-full border border-navy-500/40" />
           </span>
-          Size = factories onboarded
+          {t("Size = factories onboarded")}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="flex overflow-hidden rounded-full" aria-hidden>
             {SCORE_STOPS.map((c) => <span key={c} className="h-2 w-4" style={{ backgroundColor: c }} />)}
           </span>
-          Colour = avg maturity score
+          {t("Colour = avg maturity score")}
         </span>
-        <span className="italic">Positions approximate · illustrative</span>
+        <span className="italic">{t("Positions approximate · illustrative")}</span>
       </div>
     </div>
   );

@@ -97,3 +97,20 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Service workspaces: grid items may shrink below their content width (prevents mobile overflow). */
+.jz-workspace .grid > * {
+  min-width: 0;
+}
+
+/* Collapsible sidebar rail: labels fade out while the rail is collapsed. */
+.sb-fade {
+  transition: opacity 0.22s ease;
+}
+.sb-rail[data-collapsed="true"] .sb-fade {
+  opacity: 0;
+  pointer-events: none;
+}
+.sb-rail[data-collapsed="false"] .sb-fade {
+  transition-delay: 0.08s;
+}

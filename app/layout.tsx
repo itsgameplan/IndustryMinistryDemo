@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Inter, IBM_Plex_Sans_Arabic } from "next/font/google";
-import { Toaster } from "sonner";
 import { DeploymentTicker } from "@/components/shell/deployment-ticker";
+import { LanguageSwitcher } from "@/components/shell/language-switcher";
+import { LocalizedToaster } from "@/components/shell/localized-toaster";
+import { I18nProvider } from "@/lib/i18n";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, localeDir } from "@/lib/i18n/config";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
@@ -13,13 +17,20 @@ export const metadata: Metadata = {
   description: "AI-powered factory digital maturity, transformation and intelligence platform (demonstration).",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // The language choice lives in a cookie so the first server render already has the right text and direction.
+  const saved = (await cookies()).get(LOCALE_COOKIE)?.value;
+  const locale = isLocale(saved) ? saved : DEFAULT_LOCALE;
+
   return (
-    <html lang="en" className={`${inter.variable} ${plexArabic.variable} h-full antialiased`}>
+    <html lang={locale} dir={localeDir(locale)} className={`${inter.variable} ${plexArabic.variable} h-full antialiased`}>
       <body className="min-h-full">
-        {children}
-        <DeploymentTicker />
-        <Toaster position="bottom-right" richColors closeButton />
+        <I18nProvider initialLocale={locale}>
+          {children}
+          <DeploymentTicker />
+          <LanguageSwitcher />
+          <LocalizedToaster />
+        </I18nProvider>
       </body>
     </html>
   );

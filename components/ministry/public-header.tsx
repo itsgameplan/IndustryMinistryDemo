@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, BadgeCheck, Landmark, LayoutDashboard } from "lucide-react";
 import { Logo } from "@/components/shell/app-shell";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 /** Lightweight header for public routes that sit outside the factory app shell. */
 export function PublicHeader({ current, context }: { current: "verify" | "ministry"; context: string }) {
@@ -11,17 +12,18 @@ export function PublicHeader({ current, context }: { current: "verify" | "minist
     ? { href: "/ministry", label: "Observatory", icon: Landmark }
     : { href: "/verify", label: "Verify a licence", icon: BadgeCheck };
   const CrossIcon = cross.icon;
+  const t = useT();
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 md:px-8">
         <Logo />
         <span aria-hidden className="hidden h-6 w-px bg-line sm:block" />
-        <span className="hidden truncate text-sm font-medium text-navy-600 sm:block">{context}</span>
-        <nav aria-label="Public navigation" className="ml-auto flex items-center gap-1">
-          <HeaderLink href="/" icon={<ArrowLeft />} label="Back to Jahez" />
-          <HeaderLink href={cross.href} icon={<CrossIcon />} label={cross.label} className="hidden md:inline-flex" />
+        <span className="hidden truncate text-sm font-medium text-navy-600 sm:block">{t(context)}</span>
+        <nav aria-label={t("Public navigation")} className="ms-auto flex items-center gap-1">
+          <HeaderLink href="/" icon={<ArrowLeft className="rtl:-scale-x-100" />} label={t("Back to Jahez")} />
+          <HeaderLink href={cross.href} icon={<CrossIcon />} label={t(cross.label)} className="hidden md:inline-flex" />
           <Link href="/dashboard" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-navy-900 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 [&_svg]:size-4">
-            <LayoutDashboard /> <span className="hidden sm:inline">Dashboard</span>
+            <LayoutDashboard /> <span className="hidden sm:inline">{t("Dashboard")}</span>
           </Link>
         </nav>
       </div>
@@ -38,13 +40,15 @@ function HeaderLink({ href, icon, label, className }: { href: string; icon: Reac
 }
 
 /** Repeating diagonal "SAMPLE" watermark layer. Parent must be `relative overflow-hidden`. */
-export function SampleWatermark({ className, text = "SAMPLE · DEMONSTRATION" }: { className?: string; text?: string }) {
+export function SampleWatermark({ className, text }: { className?: string; text?: string }) {
+  const t = useT();
+  const label = text ?? t("SAMPLE · DEMONSTRATION");
   return (
     <div aria-hidden className={cn("pointer-events-none absolute inset-0 select-none overflow-hidden", className)}>
       <div className="absolute -inset-1/2 flex rotate-[-24deg] flex-col justify-center gap-16">
         {Array.from({ length: 9 }, (_, row) => (
-          <div key={row} className="flex gap-12 whitespace-nowrap text-[28px] font-black uppercase tracking-[0.3em] text-navy-900/[0.045]" style={{ marginLeft: row % 2 ? -120 : 0 }}>
-            {Array.from({ length: 6 }, (_, i) => <span key={i}>{text}</span>)}
+          <div key={row} className="flex gap-12 whitespace-nowrap text-[28px] font-black uppercase tracking-[0.3em] text-navy-900/[0.045]" style={{ marginInlineStart: row % 2 ? -120 : 0 }}>
+            {Array.from({ length: 6 }, (_, i) => <span key={i}>{label}</span>)}
           </div>
         ))}
       </div>

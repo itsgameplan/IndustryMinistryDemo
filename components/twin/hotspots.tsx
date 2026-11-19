@@ -7,6 +7,7 @@ import { Billboard, Html } from "@react-three/drei";
 import type { Machine, MachineReading } from "@/lib/types";
 import { MACHINE_FOOTPRINT, STATUS_COLOR, STATUS_LABEL, sensorStatus, sensorValue, type TwinStatus } from "./constants";
 import { useTwinMotion } from "./motion-context";
+import { useT } from "@/lib/i18n";
 
 type Sensor = Machine["sensors"][number];
 
@@ -32,6 +33,8 @@ function Hotspot({
   onSelect: (machineId: string, sensorId: string) => void;
 }) {
   const animate = useTwinMotion();
+  // Drei <Html> renders into its own React root, so translate here (inside the bridged R3F tree).
+  const t = useT();
   const pulse = useRef<THREE.Mesh>(null);
   const pulseMat = useRef<THREE.MeshBasicMaterial>(null);
   const status: TwinStatus = sensorStatus(sensor.kind, machine, reading);
@@ -91,10 +94,10 @@ function Hotspot({
               <span>{machine.name.split(" ")[0]}</span>
               <span className="flex items-center gap-1" style={{ color }}>
                 <span className="size-1.5 rounded-full" style={{ backgroundColor: color }} />
-                {STATUS_LABEL[status]}
+                {t(STATUS_LABEL[status])}
               </span>
             </div>
-            <div className="mt-1 whitespace-nowrap text-xs text-white/80">{sensor.label}</div>
+            <div className="mt-1 whitespace-nowrap text-xs text-white/80">{t(sensor.label)}</div>
             <div className="mt-0.5 flex items-baseline gap-1 font-semibold tabular-nums">
               <span className="text-lg leading-none">{value}</span>
               <span className="text-[11px] text-white/60">{unit}</span>

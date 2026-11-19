@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
+import { useT } from "@/lib/i18n";
 import { DELTA_MACHINES } from "@/lib/data/machines";
 import type { MachineReading } from "@/lib/types";
 import { STATUS_COLOR } from "./charts";
@@ -9,8 +10,9 @@ import { shortName } from "./model";
 /** Top-down floor plan of the Delta shop floor (same coordinates as the 3D twin). */
 export function FloorMap({ readings, selectedId, onSelect }: { readings: MachineReading[]; selectedId: string; onSelect: (id: string) => void }) {
   const reduce = useReducedMotion();
+  const t = useT();
   return (
-    <svg viewBox="-21 -13 42 26" className="w-full" role="group" aria-label="Shop floor map">
+    <svg viewBox="-21 -13 42 26" className="w-full" role="group" aria-label={t("Shop floor map")}>
       <defs>
         <pattern id="floor-grid" width="2" height="2" patternUnits="userSpaceOnUse">
           <path d="M2 0 L0 0 0 2" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.06" />
@@ -19,8 +21,8 @@ export function FloorMap({ readings, selectedId, onSelect }: { readings: Machine
       <rect x="-20" y="-12" width="40" height="24" rx="1.2" fill="url(#floor-grid)" stroke="rgba(255,255,255,0.14)" strokeWidth="0.12" />
       {/* aisles */}
       <rect x="-20" y="-1.6" width="40" height="2" fill="rgba(255,255,255,0.03)" />
-      <text x="-19" y="-0.3" fontSize="0.8" fill="rgba(255,255,255,0.3)">MAIN AISLE</text>
-      <text x="-19" y="-10.6" fontSize="0.8" fill="rgba(255,255,255,0.3)">LINE A · B · C</text>
+      <text x="-19" y="-0.3" fontSize="0.8" fill="rgba(255,255,255,0.3)">{t("MAIN AISLE")}</text>
+      <text x="-19" y="-10.6" fontSize="0.8" fill="rgba(255,255,255,0.3)">{t("LINE A · B · C")}</text>
       {DELTA_MACHINES.map((m) => {
         const r = readings.find((x) => x.machineId === m.id);
         const status = r?.status ?? "healthy";
@@ -32,7 +34,7 @@ export function FloorMap({ readings, selectedId, onSelect }: { readings: Machine
             key={m.id}
             role="button"
             tabIndex={0}
-            aria-label={`${m.name}, ${status}`}
+            aria-label={`${m.name}, ${t(status === "healthy" ? "Healthy" : status === "watch" ? "Watch" : "Critical")}`}
             aria-pressed={sel}
             onClick={() => onSelect(m.id)}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(m.id); } }}

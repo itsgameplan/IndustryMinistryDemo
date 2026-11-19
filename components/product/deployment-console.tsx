@@ -14,6 +14,7 @@ import { SOLUTIONS } from "@/lib/data/solutions";
 import { REQUIREMENTS, tierDef } from "@/lib/data/tiers";
 import { deploymentKey, deploymentProgress, useActiveFactory, useJahez, useNow } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useLocale, useT } from "@/lib/i18n";
 import type { DeploymentLog, Solution, SolutionId } from "@/lib/types";
 
 const AGENT_TONES = [
@@ -47,6 +48,11 @@ function LiveConsole({ sol }: { sol: Solution }) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const { id: factoryId, factory } = useActiveFactory();
+  const t = useT();
+  const { locale } = useLocale();
+  const ar = locale === "ar";
+  const solName = ar ? sol.nameAr : sol.name;
+  const factoryName = ar ? factory.nameAr : factory.name;
   const dep = useJahez((s) => s.deployments[deploymentKey(factoryId, sol.id)]);
   const now = useNow(250);
   const raw = deploymentProgress(dep, now);
@@ -64,27 +70,27 @@ function LiveConsole({ sol }: { sol: Solution }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button asChild variant="ghost" size="sm" className="-ml-2"><Link href="/dashboard"><ArrowLeft /> Overview</Link></Button>
-        <span className="text-xs text-muted">{factory.name} · deployment {sol.id}</span>
+        <Button asChild variant="ghost" size="sm" className="-ms-2"><Link href="/dashboard"><ArrowLeft className="rtl:-scale-x-100" /> {t("Overview")}</Link></Button>
+        <span className="text-xs text-muted">{t("{factory} · deployment {id}", { factory: factoryName, id: sol.id })}</span>
       </div>
 
       {/* Hero band */}
       <section className="relative overflow-hidden rounded-3xl bg-navy-950 text-white shadow-lift" aria-live="polite">
         <div className="bg-grid-dark absolute inset-0" aria-hidden />
-        <div className={cn("pointer-events-none absolute -right-24 -top-24 size-80 rounded-full blur-3xl transition-colors duration-700", done ? "bg-emerald-500/20" : "bg-teal-500/20")} aria-hidden />
+        <div className={cn("pointer-events-none absolute -end-24 -top-24 size-80 rounded-full blur-3xl transition-colors duration-700", done ? "bg-emerald-500/20" : "bg-teal-500/20")} aria-hidden />
         <div className="relative grid gap-8 p-6 md:p-8 lg:grid-cols-[auto_1fr_auto] lg:items-center">
           <div className="flex justify-center">
             <div className="relative">
               {!done && !reduce ? <span className="absolute inset-3 animate-pulse-ring rounded-full bg-teal-400/20" aria-hidden /> : null}
-              <ScoreRing value={pct} size={148} stroke={10} dark color={done ? "#34D399" : "var(--color-teal-400)"} label={`${pct}%`} sublabel={done ? "Deployed" : "Progress"} />
+              <ScoreRing value={pct} size={148} stroke={10} dark color={done ? "#34D399" : "var(--color-teal-400)"} label={`${pct}%`} sublabel={done ? t("Deployed") : t("Progress")} />
             </div>
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="grid size-8 place-items-center rounded-lg bg-white/10"><SolutionIcon icon={sol.icon} className="size-4 text-teal-300" /></span>
-              {done ? <Badge tone="green"><CheckCircle2 /> Live</Badge> : <Badge className="bg-teal-400/15 text-teal-200"><Loader2 className="animate-spin" /> Deploying</Badge>}
+              {done ? <Badge tone="green"><CheckCircle2 /> {t("Live")}</Badge> : <Badge className="bg-teal-400/15 text-teal-200"><Loader2 className="animate-spin" /> {t("Deploying")}</Badge>}
             </div>
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">{done ? `${sol.name} is live` : `Deploying ${sol.name}`}</h1>
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">{done ? t("{name} is live", { name: solName }) : t("Deploying {name}", { name: solName })}</h1>
             <AnimatePresence mode="wait">
               <motion.p
                 key={done ? "done" : activeStage.id}
@@ -93,7 +99,7 @@ function LiveConsole({ sol }: { sol: Solution }) {
                 exit={reduce ? undefined : { opacity: 0, y: -4 }}
                 className="mt-1.5 text-sm text-white/65"
               >
-                {done ? `All ${sol.stages.length} stages completed by ${agents.length} agents for ${factory.name}.` : <>Stage {stageIdx + 1}/{sol.stages.length} · <span className="text-white">{activeStage.label}</span> — {activeStage.agent}</>}
+                {done ? t("All {stages} stages completed by {agents} agents for {factory}.", { stages: sol.stages.length, agents: agents.length, factory: factoryName }) : <>{t("Stage {current}/{total}", { current: stageIdx + 1, total: sol.stages.length })} · <span className="text-white">{t(activeStage.label)}</span> — {t(activeStage.agent)}</>}
               </motion.p>
             </AnimatePresence>
             <div className="mt-5 h-1 overflow-hidden rounded-full bg-white/10">
@@ -101,24 +107,24 @@ function LiveConsole({ sol }: { sol: Solution }) {
             </div>
           </div>
           <div className="flex flex-row flex-wrap gap-6 lg:flex-col lg:items-end lg:gap-4">
-            <div className="lg:text-right">
-              <div className="flex items-center gap-1 text-xs uppercase tracking-wider text-white/45 lg:justify-end"><Clock className="size-3" /> {done ? "Duration" : "ETA"}</div>
+            <div className="lg:text-end">
+              <div className="flex items-center gap-1 text-xs uppercase tracking-wider text-white/45 lg:justify-end"><Clock className="size-3" /> {done ? t("Duration") : t("ETA")}</div>
               <div className="mt-0.5 font-mono text-3xl tabular-nums">{done ? clock(sol.durationSeconds) : clock(eta)}</div>
             </div>
-            <div className="lg:text-right">
-              <div className="text-xs uppercase tracking-wider text-white/45">Agents online</div>
-              <ul className="mt-1.5 flex -space-x-1.5 lg:justify-end" aria-label="Agents">
+            <div className="lg:text-end">
+              <div className="text-xs uppercase tracking-wider text-white/45">{t("Agents online")}</div>
+              <ul className="mt-1.5 flex -space-x-1.5 rtl:space-x-reverse lg:justify-end" aria-label={t("Agents")}>
                 {agents.map((a) => {
                   const st = sol.stages.find((s) => s.agent === a);
                   const online = done || (st != null && st.startsAt <= p.elapsed);
                   const active = !done && a === activeStage.agent;
                   return (
-                    <li key={a} title={`${a}${active ? " · working" : online ? " · finished" : " · queued"}`} className="relative">
+                    <li key={a} title={t(active ? "{agent} · working" : online ? "{agent} · finished" : "{agent} · queued", { agent: t(a) })} className="relative">
                       <span className={cn("grid size-8 place-items-center rounded-full text-[11px] font-bold ring-2 ring-navy-950 transition-opacity", toneFor(sol, a).split(" ").slice(0, 2).join(" "), online ? "opacity-100" : "opacity-30")}>
                         {a.split(" ")[0].slice(0, 2)}
                       </span>
-                      {active ? <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-navy-950" /> : null}
-                      <span className="sr-only">{a}{active ? " (working)" : online ? " (finished)" : " (queued)"}</span>
+                      {active ? <span className="absolute -bottom-0.5 -end-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-navy-950" /> : null}
+                      <span className="sr-only">{t(active ? "{agent} (working)" : online ? "{agent} (finished)" : "{agent} (queued)", { agent: t(a) })}</span>
                     </li>
                   );
                 })}
@@ -131,9 +137,9 @@ function LiveConsole({ sol }: { sol: Solution }) {
       {done ? <SuccessPanel sol={sol} onOpen={() => router.push(sol.route)} /> : (
         <div className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-4 sm:flex-row sm:items-center">
           <LogOut className="size-5 shrink-0 text-teal-600" aria-hidden />
-          <p className="flex-1 text-sm text-navy-700"><span className="font-semibold text-navy-900">You can leave this page — deployment continues.</span> Agents run in the background and you&apos;ll get a notification when {sol.name} is live.</p>
-          <Button variant="outline" size="sm" onClick={() => { router.push("/dashboard"); toast("Deployment continues in the background", { description: `${sol.name} · ${clock(eta)} remaining` }); }}>
-            Back to dashboard
+          <p className="flex-1 text-sm text-navy-700"><span className="font-semibold text-navy-900">{t("You can leave this page — deployment continues.")}</span> {t("Agents run in the background and you'll get a notification when {name} is live.", { name: solName })}</p>
+          <Button variant="outline" size="sm" onClick={() => { router.push("/dashboard"); toast(t("Deployment continues in the background"), { description: t("{name} · {time} remaining", { name: solName, time: clock(eta) }) }); }}>
+            {t("Back to dashboard")}
           </Button>
         </div>
       )}
@@ -141,7 +147,7 @@ function LiveConsole({ sol }: { sol: Solution }) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         {/* Stage timeline */}
         <Card>
-          <CardHeader><CardTitle>Pipeline</CardTitle><span className="text-xs tabular-nums text-muted">{done ? sol.stages.length : stageIdx}/{sol.stages.length} done</span></CardHeader>
+          <CardHeader><CardTitle>{t("Pipeline||deployment")}</CardTitle><span className="text-xs tabular-nums text-muted">{t("{done}/{total} done", { done: done ? sol.stages.length : stageIdx, total: sol.stages.length })}</span></CardHeader>
           <CardContent>
             <ol className="relative">
               {sol.stages.map((s, i) => {
@@ -151,7 +157,7 @@ function LiveConsole({ sol }: { sol: Solution }) {
                 return (
                   <li key={s.id} className="relative flex gap-3 pb-5 last:pb-0">
                     {i < sol.stages.length - 1 ? (
-                      <span className="absolute left-[11px] top-7 h-[calc(100%-1.5rem)] w-px bg-line" aria-hidden>
+                      <span className="absolute start-[11px] top-7 h-[calc(100%-1.5rem)] w-px bg-line" aria-hidden>
                         <span className="block w-px bg-teal-500 transition-[height] duration-300" style={{ height: `${local * 100}%` }} />
                       </span>
                     ) : null}
@@ -159,9 +165,9 @@ function LiveConsole({ sol }: { sol: Solution }) {
                       {status === "done" ? <CheckCircle2 className="size-3.5" /> : status === "active" ? <Loader2 className="size-3.5 animate-spin" /> : <Circle className="size-2.5" />}
                     </span>
                     <div className="min-w-0 flex-1 pt-0.5">
-                      <div className={cn("text-sm font-medium", status === "pending" ? "text-muted" : "text-navy-900")}>{s.label}</div>
+                      <div className={cn("text-sm font-medium", status === "pending" ? "text-muted" : "text-navy-900")}>{t(s.label)}</div>
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                        <span>{s.agent}</span>
+                        <span>{t(s.agent)}</span>
                         <span className="font-mono tabular-nums">T+{clock(s.startsAt)}</span>
                       </div>
                       {status === "active" ? (
@@ -182,15 +188,16 @@ function LiveConsole({ sol }: { sol: Solution }) {
       </div>
 
       {!done ? <DeliverablesProgress sol={sol} ratio={p.ratio} /> : null}
-      <DemoDisclaimer>Simulated AI deployment for demonstration. Agent actions, provisioning and integrations shown here are illustrative; no external systems are modified.</DemoDisclaimer>
+      <DemoDisclaimer>{t("Simulated AI deployment for demonstration. Agent actions, provisioning and integrations shown here are illustrative; no external systems are modified.")}</DemoDisclaimer>
     </div>
   );
 }
 
 function AgentTerminal({ sol, logs, elapsed, done }: { sol: Solution; logs: DeploymentLog[]; elapsed: number; done: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
   const last = logs[logs.length - 1];
-  const typed = last && !done ? Math.min(last.message.length, Math.floor((elapsed - last.at) * 90) + 6) : undefined;
+  const typed = last && !done ? Math.min(t(last.message).length, Math.floor((elapsed - last.at) * 90) + 6) : undefined;
 
   useEffect(() => {
     const el = ref.current;
@@ -202,26 +209,27 @@ function AgentTerminal({ sol, logs, elapsed, done }: { sol: Solution; logs: Depl
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
         <span className="flex gap-1.5" aria-hidden><span className="size-2.5 rounded-full bg-white/15" /><span className="size-2.5 rounded-full bg-white/15" /><span className="size-2.5 rounded-full bg-white/15" /></span>
         <span className="flex min-w-0 items-center gap-1.5 truncate font-mono text-xs text-white/55"><Terminal className="size-3.5 shrink-0" /> jahez-agents · deploy/{sol.id}</span>
-        <span className="ml-auto font-mono text-[11px] tabular-nums text-white/40">{logs.length}/{sol.logs.length}</span>
+        <span className="ms-auto font-mono text-[11px] tabular-nums text-white/40">{logs.length}/{sol.logs.length}</span>
       </div>
-      <div ref={ref} className="scrollbar-thin max-h-[420px] flex-1 space-y-1.5 overflow-y-auto p-4 font-mono text-[12.5px] leading-relaxed" role="log" aria-live="polite" aria-label="Agent activity log">
+      <div ref={ref} className="scrollbar-thin max-h-[420px] flex-1 space-y-1.5 overflow-y-auto p-4 font-mono text-[12.5px] leading-relaxed" role="log" aria-live="polite" aria-label={t("Agent activity log")}>
         <div className="text-white/35">$ jahez deploy {sol.id} --factory {sol.factory} --agents {agentsOf(sol).length}</div>
         {logs.map((l, i) => {
           const isLast = i === logs.length - 1;
-          const text = isLast && typed != null ? l.message.slice(0, typed) : l.message;
+          const msg = t(l.message);
+          const text = isLast && typed != null ? msg.slice(0, typed) : msg;
           return (
             <div key={`${l.at}-${i}`} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="tabular-nums text-white/30">[{clock(l.at)}]</span>
-              <span className={cn("rounded px-1.5 py-px text-[11px] ring-1 ring-inset", toneFor(sol, l.agent))}>{l.agent}</span>
+              <span className={cn("rounded px-1.5 py-px text-[11px] ring-1 ring-inset", toneFor(sol, l.agent))}>{t(l.agent)}</span>
               <span className={cn("min-w-0 basis-full sm:basis-auto sm:flex-1", l.level === "success" ? "text-emerald-300" : l.level === "warn" ? "text-amber-300" : "text-white/80")}>
                 {l.level === "success" ? "✓ " : l.level === "warn" ? "! " : ""}
                 {text}
-                {isLast && !done ? <span className="ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 animate-pulse bg-teal-300" aria-hidden /> : null}
+                {isLast && !done ? <span className="ms-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 animate-pulse bg-teal-300" aria-hidden /> : null}
               </span>
             </div>
           );
         })}
-        {done ? <div className="pt-2 text-emerald-300">✓ deployment complete · exit 0</div> : null}
+        {done ? <div className="pt-2 text-emerald-300">✓ {t("deployment complete · exit 0")}</div> : null}
       </div>
     </div>
   );
@@ -229,16 +237,17 @@ function AgentTerminal({ sol, logs, elapsed, done }: { sol: Solution; logs: Depl
 
 function DeliverablesProgress({ sol, ratio }: { sol: Solution; ratio: number }) {
   const n = sol.deliverables.length;
+  const t = useT();
   return (
     <section aria-labelledby="deliverables">
-      <h2 id="deliverables" className="mb-3 text-sm font-semibold text-navy-900">Deliverables</h2>
+      <h2 id="deliverables" className="mb-3 text-sm font-semibold text-navy-900">{t("Deliverables")}</h2>
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {sol.deliverables.map((d, i) => {
           const ready = ratio >= (i + 1) / n - 0.001;
           return (
             <li key={d} className={cn("flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition-colors", ready ? "border-teal-200 bg-teal-50/60 text-navy-900" : "border-line bg-white text-muted")}>
               {ready ? <CheckCircle2 className="size-4 shrink-0 text-teal-600" /> : <Circle className="size-4 shrink-0 text-navy-500/30" />}
-              <span className="min-w-0">{d}</span>
+              <span className="min-w-0">{t(d)}</span>
             </li>
           );
         })}
@@ -249,33 +258,36 @@ function DeliverablesProgress({ sol, ratio }: { sol: Solution; ratio: number }) 
 
 function SuccessPanel({ sol, onOpen }: { sol: Solution; onOpen: () => void }) {
   const reduce = useReducedMotion();
+  const t = useT();
+  const { locale } = useLocale();
+  const ar = locale === "ar";
   const reqs = REQUIREMENTS.filter((r) => sol.satisfies.includes(r.id));
   return (
     <motion.section initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid gap-6 rounded-3xl border border-emerald-200 bg-white p-6 shadow-card md:p-8 lg:grid-cols-[1fr_1fr]">
       <div>
-        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><CheckCircle2 className="size-5" /> Deployment successful</div>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight text-navy-900">Your {sol.name} is ready to explore and edit</h2>
-        <p className="mt-1.5 text-sm text-muted">{sol.description}</p>
+        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700"><CheckCircle2 className="size-5" /> {t("Deployment successful")}</div>
+        <h2 className="mt-2 text-xl font-semibold tracking-tight text-navy-900">{t("Your {name} is ready to explore and edit", { name: ar ? sol.nameAr : sol.name })}</h2>
+        <p className="mt-1.5 text-sm text-muted">{t(sol.description)}</p>
         <div className="mt-5 flex flex-wrap gap-2">
-          <Button variant="accent" size="lg" onClick={onOpen}><Sparkles /> Open solution</Button>
-          <Button asChild variant="outline" size="lg"><Link href="/dashboard">Back to dashboard</Link></Button>
-          <Button asChild variant="ghost" size="lg"><Link href="/roadmap"><Compass /> Roadmap</Link></Button>
+          <Button variant="accent" size="lg" onClick={onOpen}><Sparkles /> {t("Open solution")}</Button>
+          <Button asChild variant="outline" size="lg"><Link href="/dashboard">{t("Back to dashboard")}</Link></Button>
+          <Button asChild variant="ghost" size="lg"><Link href="/roadmap"><Compass /> {t("Roadmap")}</Link></Button>
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted">Delivered</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted">{t("Delivered")}</div>
           <ul className="mt-2 space-y-1.5">
-            {sol.deliverables.map((d) => <li key={d} className="flex items-start gap-2 text-sm text-navy-800"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {d}</li>)}
+            {sol.deliverables.map((d) => <li key={d} className="flex items-start gap-2 text-sm text-navy-800"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" /> {t(d)}</li>)}
           </ul>
         </div>
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted">Requirements now met</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted">{t("Requirements now met")}</div>
           <ul className="mt-2 space-y-2">
             {reqs.map((r) => (
               <li key={r.id} className="rounded-lg bg-canvas px-3 py-2 text-sm">
-                <div className="font-medium text-navy-900">{r.title}</div>
-                <div className="text-xs text-muted">Tier {r.tier} · {tierDef(r.tier).name} · provisional</div>
+                <div className="font-medium text-navy-900">{t(r.title)}</div>
+                <div className="text-xs text-muted">{t("Tier {tier} · {name} · provisional", { tier: r.tier, name: ar ? tierDef(r.tier).nameAr : tierDef(r.tier).name })}</div>
               </li>
             ))}
           </ul>
@@ -289,42 +301,44 @@ function SuccessPanel({ sol, onOpen }: { sol: Solution; onOpen: () => void }) {
 function SolutionIntro({ sol }: { sol: Solution }) {
   const reqs = REQUIREMENTS.filter((r) => sol.satisfies.includes(r.id));
   const agents = agentsOf(sol);
+  const t = useT();
+  const { locale } = useLocale();
   return (
     <div className="space-y-6">
-      <Button asChild variant="ghost" size="sm" className="-ml-2"><Link href="/solutions"><ArrowLeft /> AI solutions</Link></Button>
+      <Button asChild variant="ghost" size="sm" className="-ms-2"><Link href="/solutions"><ArrowLeft className="rtl:-scale-x-100" /> {t("AI solutions")}</Link></Button>
       <section className="grid overflow-hidden rounded-3xl border border-line bg-white shadow-card lg:grid-cols-[1.2fr_1fr]">
         <div className="bg-grid p-6 md:p-10">
           <span className="grid size-12 place-items-center rounded-2xl bg-navy-900 text-white shadow-lift"><SolutionIcon icon={sol.icon} className="size-6" /></span>
-          <div className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-600">Ready to deploy</div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-navy-900 md:text-3xl">{sol.name}</h1>
-          <p className="mt-2 max-w-xl text-[15px] text-navy-700">{sol.description}</p>
+          <div className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-600">{t("Ready to deploy")}</div>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-navy-900 md:text-3xl">{locale === "ar" ? sol.nameAr : sol.name}</h1>
+          <p className="mt-2 max-w-xl text-[15px] text-navy-700">{t(sol.description)}</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <BuildWithAIButton solutionId={sol.id} size="lg" />
-            <span className="inline-flex items-center gap-1.5 text-sm text-muted"><Clock className="size-4" /> About {sol.durationSeconds} seconds · {sol.priceNote}</span>
+            <span className="inline-flex items-center gap-1.5 text-sm text-muted"><Clock className="size-4" /> {t("About {count} seconds", { count: sol.durationSeconds })} · {t(sol.priceNote)}</span>
           </div>
         </div>
-        <div className="border-t border-line bg-canvas/60 p-6 md:p-8 lg:border-l lg:border-t-0">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted">Agent pipeline</div>
+        <div className="border-t border-line bg-canvas/60 p-6 md:p-8 lg:border-s lg:border-t-0">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted">{t("Agent pipeline")}</div>
           <ol className="mt-3 space-y-2.5">
             {sol.stages.map((s, i) => (
               <li key={s.id} className="flex items-center gap-3 text-sm">
                 <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white text-[11px] font-semibold text-navy-700 ring-1 ring-line">{i + 1}</span>
-                <span className="flex-1 text-navy-800">{s.label}</span>
-                <span className="hidden text-xs text-muted sm:inline">{s.agent}</span>
+                <span className="flex-1 text-navy-800">{t(s.label)}</span>
+                <span className="hidden text-xs text-muted sm:inline">{t(s.agent)}</span>
               </li>
             ))}
           </ol>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted">You get</div>
-              <ul className="mt-2 space-y-1 text-sm text-navy-800">{sol.deliverables.map((d) => <li key={d}>· {d}</li>)}</ul>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted">{t("You get")}</div>
+              <ul className="mt-2 space-y-1 text-sm text-navy-800">{sol.deliverables.map((d) => <li key={d}>· {t(d)}</li>)}</ul>
             </div>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted">Satisfies</div>
-              <ul className="mt-2 space-y-1 text-sm text-navy-800">{reqs.map((r) => <li key={r.id}>Tier {r.tier} · {r.title}</li>)}</ul>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted">{t("Satisfies")}</div>
+              <ul className="mt-2 space-y-1 text-sm text-navy-800">{reqs.map((r) => <li key={r.id}>{t("Tier {tier}", { tier: r.tier })} · {t(r.title)}</li>)}</ul>
             </div>
           </div>
-          <div className="mt-6 flex items-center gap-2 text-xs text-muted"><Bot className="size-4 text-teal-600" /> {agents.length} specialised agents</div>
+          <div className="mt-6 flex items-center gap-2 text-xs text-muted"><Bot className="size-4 text-teal-600" /> {t("{count} specialised agents", { count: agents.length })}</div>
         </div>
       </section>
     </div>
@@ -336,29 +350,36 @@ function WrongFactory({ sol }: { sol: Solution }) {
   const { factory } = useActiveFactory();
   const setActive = useJahez((s) => s.setActiveFactory);
   const owner = FACTORIES[sol.factory];
+  const t = useT();
+  const { locale } = useLocale();
+  const ar = locale === "ar";
+  const solName = ar ? sol.nameAr : sol.name;
+  const ownerName = ar ? owner.nameAr : owner.name;
+  const factoryName = ar ? factory.nameAr : factory.name;
   return (
     <Card className="bg-grid mx-auto mt-4 max-w-2xl p-8 text-center md:p-10">
       <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-navy-900 text-white shadow-lift"><SolutionIcon icon={sol.icon} className="size-6" /></span>
-      <h1 className="mt-5 text-xl font-semibold tracking-tight text-navy-900">{sol.name} belongs to another journey</h1>
+      <h1 className="mt-5 text-xl font-semibold tracking-tight text-navy-900">{t("{name} belongs to another journey", { name: solName })}</h1>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-        In this demo, {sol.name} is part of {owner.name}&apos;s roadmap. {factory.name} has a different recommended path based on its current tier and systems.
+        {t("In this demo, {solution} is part of {owner}'s roadmap. {factory} has a different recommended path based on its current tier and systems.", { solution: solName, owner: ownerName, factory: factoryName })}
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-2">
-        <Button onClick={() => { setActive(sol.factory); toast(`Switched to ${owner.name}`); }}><Repeat /> Switch to {owner.name}</Button>
-        <Button asChild variant="outline"><Link href="/solutions">See {factory.name}&apos;s solutions <ArrowRight /></Link></Button>
+        <Button onClick={() => { setActive(sol.factory); toast(t("Switched to {name}", { name: ownerName })); }}><Repeat /> {t("Switch to {name}", { name: ownerName })}</Button>
+        <Button asChild variant="outline"><Link href="/solutions">{t("See {name}'s solutions", { name: factoryName })} <ArrowRight className="rtl:-scale-x-100" /></Link></Button>
       </div>
     </Card>
   );
 }
 
 export function DeploymentNotFound({ param }: { param: string }) {
+  const t = useT();
   return (
     <EmptyState
       className="mt-4"
       icon={<Compass />}
-      title="We couldn't find that deployment"
-      description={`"${param}" isn't one of the Jahez AI solutions. Pick a solution from the catalogue to start or follow a deployment.`}
-      action={<Button asChild><Link href="/solutions">Browse AI solutions <ArrowRight /></Link></Button>}
+      title={t("We couldn't find that deployment")}
+      description={t("\"{param}\" isn't one of the Jahez AI solutions. Pick a solution from the catalogue to start or follow a deployment.", { param })}
+      action={<Button asChild><Link href="/solutions">{t("Browse AI solutions")} <ArrowRight className="rtl:-scale-x-100" /></Link></Button>}
     />
   );
 }

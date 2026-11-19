@@ -5,6 +5,7 @@ import { Activity, Check, Globe, Lock, ShieldCheck } from "lucide-react";
 import { TIERS } from "@/lib/data/tiers";
 import { SOLUTIONS } from "@/lib/data/solutions";
 import { cn } from "@/lib/utils";
+import { useLocale, useT } from "@/lib/i18n";
 import type { Deployment, FactoryId, Requirement, Solution, SolutionId, TierLevel } from "@/lib/types";
 
 // ---------------- Score ring ----------------
@@ -28,11 +29,12 @@ export function ScoreRing({
   className?: string;
 }) {
   const reduce = useReducedMotion();
+  const t = useT();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const v = Math.max(0, Math.min(100, value));
   return (
-    <div className={cn("relative grid place-items-center", className)} style={{ width: size, height: size }} role="img" aria-label={`${Math.round(v)} out of 100`}>
+    <div className={cn("relative grid place-items-center", className)} style={{ width: size, height: size }} role="img" aria-label={t("{value} out of 100", { value: Math.round(v) })}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className={dark ? "stroke-white/10" : "stroke-navy-900/[0.06]"} />
         <motion.circle
@@ -110,8 +112,10 @@ export const CATEGORY_LABELS: Record<Requirement["category"], string> = {
 /** Horizontal 5-step tier ladder. Current tier highlighted; `target` optionally marked. */
 export function TierLadder({ tier, target, dark, className }: { tier: TierLevel; target?: TierLevel | null; dark?: boolean; className?: string }) {
   const reduce = useReducedMotion();
+  const tr = useT();
+  const { locale } = useLocale();
   return (
-    <ol className={cn("grid grid-cols-5 gap-1.5 sm:gap-2", className)} aria-label={`Current tier ${tier} of 4`}>
+    <ol className={cn("grid grid-cols-5 gap-1.5 sm:gap-2", className)} aria-label={tr("Current tier {tier} of 4", { tier })}>
       {TIERS.map((t, i) => {
         const reached = t.level <= tier;
         const current = t.level === tier;
@@ -121,7 +125,7 @@ export function TierLadder({ tier, target, dark, className }: { tier: TierLevel;
             <div className={cn("relative h-1.5 overflow-hidden rounded-full", dark ? "bg-white/10" : "bg-navy-900/[0.07]")}>
               {reached ? (
                 <motion.div
-                  className="absolute inset-y-0 left-0 rounded-full"
+                  className="absolute inset-y-0 start-0 rounded-full"
                   style={{ backgroundColor: t.color }}
                   initial={reduce ? false : { width: 0 }}
                   animate={{ width: "100%" }}
@@ -140,10 +144,10 @@ export function TierLadder({ tier, target, dark, className }: { tier: TierLevel;
               >
                 {reached && !current ? <Check className="size-3" strokeWidth={3} /> : t.level}
               </span>
-              <span className={cn("hidden truncate text-xs font-medium sm:block", current ? (dark ? "text-white" : "text-navy-900") : dark ? "text-white/45" : "text-muted")}>{t.name}</span>
+              <span className={cn("hidden truncate text-xs font-medium sm:block", current ? (dark ? "text-white" : "text-navy-900") : dark ? "text-white/45" : "text-muted")}>{locale === "ar" ? t.nameAr : t.name}</span>
             </div>
-            {current ? <div className={cn("mt-0.5 hidden text-[10px] font-semibold uppercase tracking-wider sm:block", dark ? "text-teal-300" : "text-teal-600")}>You are here</div> : null}
-            {isTarget && !current ? <div className={cn("mt-0.5 hidden text-[10px] font-semibold uppercase tracking-wider sm:block", dark ? "text-gold-300" : "text-gold-600")}>Next target</div> : null}
+            {current ? <div className={cn("mt-0.5 hidden text-[10px] font-semibold uppercase tracking-wider sm:block", dark ? "text-teal-300" : "text-teal-600")}>{tr("You are here")}</div> : null}
+            {isTarget && !current ? <div className={cn("mt-0.5 hidden text-[10px] font-semibold uppercase tracking-wider sm:block", dark ? "text-gold-300" : "text-gold-600")}>{tr("Next target")}</div> : null}
           </li>
         );
       })}
@@ -153,13 +157,14 @@ export function TierLadder({ tier, target, dark, className }: { tier: TierLevel;
 
 /** Small status pill for a requirement. */
 export function RequirementPill({ state }: { state: RequirementState }) {
+  const t = useT();
   if (state.kind === "met")
-    return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"><Check className="size-3" /> Met</span>;
+    return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"><Check className="size-3" /> {t("Met")}</span>;
   if (state.kind === "deploying")
-    return <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-700 ring-1 ring-inset ring-teal-200"><span className="size-1.5 animate-pulse rounded-full bg-teal-500" /> Deploying</span>;
+    return <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-700 ring-1 ring-inset ring-teal-200"><span className="size-1.5 animate-pulse rounded-full bg-teal-500" /> {t("Deploying")}</span>;
   if (state.kind === "available")
-    return <span className="inline-flex items-center gap-1 rounded-full bg-gold-50 px-2 py-0.5 text-[11px] font-semibold text-gold-600 ring-1 ring-inset ring-gold-300/60">Jahez AI can build</span>;
-  return <span className="inline-flex items-center gap-1 rounded-full bg-navy-900/5 px-2 py-0.5 text-[11px] font-semibold text-navy-600"><Lock className="size-3" /> Missing</span>;
+    return <span className="inline-flex items-center gap-1 rounded-full bg-gold-50 px-2 py-0.5 text-[11px] font-semibold text-gold-600 ring-1 ring-inset ring-gold-300/60">{t("Jahez AI can build")}</span>;
+  return <span className="inline-flex items-center gap-1 rounded-full bg-navy-900/5 px-2 py-0.5 text-[11px] font-semibold text-navy-600"><Lock className="size-3" /> {t("Missing")}</span>;
 }
 
 export const isSolutionId = (v: unknown): v is SolutionId => typeof v === "string" && Object.prototype.hasOwnProperty.call(SOLUTIONS, v);

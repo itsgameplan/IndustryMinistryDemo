@@ -1,4 +1,7 @@
 import type { Machine, MachineReading } from "@/lib/types";
+import type { TFunction } from "@/lib/i18n";
+
+const identity: TFunction = (text, vars) => (vars ? text.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m)) : text);
 
 /** Illustrative economics used for "downtime avoided" estimates (EGP per hour of unplanned stop). */
 const DOWNTIME_COST_PER_HOUR: Record<Machine["type"], number> = {
@@ -42,18 +45,20 @@ export function featureImportance(m: Machine) {
   return names.map((name, i) => ({ name, weight: raw[i] / total }));
 }
 
-export function diagnosis(m: Machine, r: MachineReading) {
+export function diagnosis(m: Machine, r: MachineReading, t: TFunction = identity) {
   const vibUp = Math.round(((r.vibration - m.baseVibration) / m.baseVibration) * 100);
   const tempUp = Math.round(r.temperature - m.baseTemp);
   if (r.status === "critical") {
-    return `Spindle vibration is ${vibUp}% above its commissioning baseline with a +${tempUp} °C bearing temperature rise. The pattern — growing 1× and 2× harmonics with stable load — matches outer-race bearing wear seen in similar machining centres. Replacing the spindle bearing in a planned stop avoids an unplanned teardown.`;
+    return t("Spindle vibration is {vib}% above its commissioning baseline with a +{temp} °C bearing temperature rise. The pattern — growing 1× and 2× harmonics with stable load — matches outer-race bearing wear seen in similar machining centres. Replacing the spindle bearing in a planned stop avoids an unplanned teardown.", { vib: vibUp, temp: tempUp });
   }
   if (r.status === "watch") {
     return m.type === "compressor"
-      ? `Discharge pressure is drifting down while motor current rises (+${tempUp} °C on oil temperature). Most likely causes are a clogging intake filter or a developing air leak. Not urgent, but worth inspecting at the next planned stop.`
-      : `Vibration is ${vibUp}% above baseline with a gradual temperature rise. Early-stage wear is likely; a lubrication check and seal inspection at the next planned stop should restore margin.`;
+      ? t("Discharge pressure is drifting down while motor current rises (+{temp} °C on oil temperature). Most likely causes are a clogging intake filter or a developing air leak. Not urgent, but worth inspecting at the next planned stop.", { temp: tempUp })
+      : t("Vibration is {vib}% above baseline with a gradual temperature rise. Early-stage wear is likely; a lubrication check and seal inspection at the next planned stop should restore margin.", { vib: vibUp });
   }
-  return `All monitored signals are within their normal operating envelope. Vibration is ${Math.abs(vibUp)}% ${vibUp >= 0 ? "above" : "below"} baseline — no action needed beyond the calendar plan.`;
+  return vibUp >= 0
+    ? t("All monitored signals are within their normal operating envelope. Vibration is {vib}% above baseline — no action needed beyond the calendar plan.", { vib: Math.abs(vibUp) })
+    : t("All monitored signals are within their normal operating envelope. Vibration is {vib}% below baseline — no action needed beyond the calendar plan.", { vib: Math.abs(vibUp) });
 }
 
 export const thresholds = (m: Machine) => ({
@@ -63,3 +68,20 @@ export const thresholds = (m: Machine) => ({
 });
 
 export const shortName = (m: Machine) => m.name.split(" ")[0];
+
+/** Alert copy from lib/telemetry is built from templates; map it back onto translatable keys. */
+const ALERT_PATTERNS: [RegExp, string, string[]][] = [
+  [/^(\S+) bearing failure risk$/, "{machine} bearing failure risk", ["machine"]],
+  [/^(\S+) trending above baseline$/, "{machine} trending above baseline", ["machine"]],
+  [/^Vibration (\S+) mm\/s \(baseline (\S+)\) · bearing (\S+)°C · (\S+)% failure probability in 14 days\.$/, "Vibration {vib} mm/s (baseline {base}) · bearing {temp}°C · {prob}% failure probability in 14 days.", ["vib", "base", "temp", "prob"]],
+  [/^Health (\S+)\/100 · vibration (\S+) mm\/s · RUL ≈ (\S+) days\.$/, "Health {health}/100 · vibration {vib} mm/s · RUL ≈ {days} days.", ["health", "vib", "days"]],
+  [/^Replace spindle bearing within (\S+) days; schedule during Saturday low-load shift\.$/, "Replace spindle bearing within {days} days; schedule during Saturday low-load shift.", ["days"]],
+];
+
+export function localizeAlertText(text: string, t: TFunction) {
+  for (const [re, key, names] of ALERT_PATTERNS) {
+    const m = re.exec(text);
+    if (m) return t(key, Object.fromEntries(names.map((n, i) => [n, m[i + 1]])));
+  }
+  return t(text);
+}

@@ -1,6 +1,6 @@
-import type { Factory, FactoryId } from "@/lib/types";
+import type { DemoFactoryId, Factory } from "@/lib/types";
 
-export const FACTORIES: Record<FactoryId, Factory> = {
+export const FACTORIES: Record<DemoFactoryId, Factory> = {
   "al-noor": {
     id: "al-noor",
     name: "Al Noor Textiles",
@@ -30,6 +30,8 @@ export const FACTORIES: Record<FactoryId, Factory> = {
     ],
     recommendedSolutions: ["website", "compliance"],
     targetOutcome: "Ready for Tier 1 verification",
+    exportStatus: "exploring",
+    objectives: ["grow-local-sales", "start-exporting", "digitalise-operations"],
     experience: "approachable",
     summary: "A family-run knitting and garment factory with 24 circular knitting machines and strong local demand, but invisible to export buyers and large retailers.",
   },
@@ -68,9 +70,11 @@ export const FACTORIES: Record<FactoryId, Factory> = {
     ],
     recommendedSolutions: ["maintenance"],
     targetOutcome: "Progress toward Tier 4 readiness",
+    exportStatus: "occasional",
+    objectives: ["grow-exports", "reduce-costs", "improve-quality", "certification"],
     experience: "command-center",
     summary: "A tier-one supplier to regional automotive assemblers running connected CNC, forging and machining lines with streaming sensor data that is not yet used for prediction.",
   },
 };
 
-export const FACTORY_IDS: FactoryId[] = ["al-noor", "delta"];
+export const FACTORY_IDS: DemoFactoryId[] = ["al-noor", "delta"];

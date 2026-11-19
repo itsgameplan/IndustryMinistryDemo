@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Grid, Html, Line } from "@react-three/drei";
+import { useT } from "@/lib/i18n";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { AGV_LOOP, FLOW_ARROWS, PALETTE, ZONES, type TwinLayers } from "./constants";
 import { useTwinMotion } from "./motion-context";
@@ -190,6 +191,8 @@ function Racks() {
 
 /** Zone fills, borders and labels. */
 function Zones({ showLabels }: { showLabels: boolean }) {
+  // Drei <Html> renders into its own React root, so translate here (inside the bridged R3F tree).
+  const t = useT();
   return (
     <group>
       {ZONES.map((z) => {
@@ -213,7 +216,7 @@ function Zones({ showLabels }: { showLabels: boolean }) {
             {showLabels ? (
               <Html position={[x0 + 0.2, 0.05, z0 + 0.25]} zIndexRange={[8, 0]} pointerEvents="none">
                 <div className="pointer-events-none select-none whitespace-nowrap rounded-md bg-white/85 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-navy-700 shadow-sm ring-1 ring-navy-900/10 backdrop-blur-sm">
-                  {z.label}
+                  {t(z.label)}
                 </div>
               </Html>
             ) : null}

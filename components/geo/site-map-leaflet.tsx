@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { Circle, MapContainer, Marker, Polygon, Polyline, SVGOverlay, TileLayer, ZoomControl, useMap, useMapEvents } from "react-leaflet";
 import { midpoint, offsetM, type LatLng } from "@/lib/geo";
+import { useT } from "@/lib/i18n";
 import { FallbackPlanSvg, MAP_GROUND_STYLE } from "./fallback-plan";
 import { DUPLICATE_CLICK_PX, ZONE_COLORS, type SiteMapProps, type TileStatus } from "./map-types";
 
@@ -103,6 +104,7 @@ function DrawInteractions({ points, mode, onAddPoint, onFinish, onVertexSelect, 
 
 export default function SiteMapLeaflet(props: SiteMapProps) {
   const { center, zoom, points, mode, selectedVertex, zones, overlays, showLabels, planCenter, planAreaM2, onTileStatus } = props;
+  const t = useT();
   const [cursor, setCursor] = useState<LatLng | null>(null);
   const [tileStatus, setTileStatus] = useState<TileStatus>(() => (typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "loading"));
   const counts = useRef({ ok: 0, err: 0 });
@@ -239,7 +241,7 @@ export default function SiteMapLeaflet(props: SiteMapProps) {
               position={toLL(p)}
               icon={i === 0 && points.length >= 3 ? icons.first : icons.draw}
               keyboard={false}
-              title={i === 0 && points.length >= 3 ? "Click to close the boundary" : `Vertex ${i + 1}`}
+              title={i === 0 && points.length >= 3 ? t("Click to close the boundary") : t("Vertex {n}", { n: i + 1 })}
               eventHandlers={{
                 click: () => {
                   if (i === 0 && points.length >= 3) props.onFinish();
@@ -260,8 +262,8 @@ export default function SiteMapLeaflet(props: SiteMapProps) {
                     position={toLL(m)}
                     icon={midpointIcon}
                     draggable
-                    title="Click or drag to insert a vertex"
-                    alt="Insert vertex"
+                    title={t("Click or drag to insert a vertex")}
+                    alt={t("Insert vertex")}
                     eventHandlers={{
                       click: () => props.onInsertVertex(i, m),
                       dragend: (e) => props.onInsertVertex(i, fromLL((e.target as L.Marker).getLatLng())),
@@ -277,8 +279,8 @@ export default function SiteMapLeaflet(props: SiteMapProps) {
               icon={selectedVertex === i ? icons.selected : icons.vertex}
               draggable
               zIndexOffset={1000}
-              title={`Vertex ${i + 1} — drag to move, right-click to delete`}
-              alt={`Vertex ${i + 1}`}
+              title={t("Vertex {n} — drag to move, right-click to delete", { n: i + 1 })}
+              alt={t("Vertex {n}", { n: i + 1 })}
               eventHandlers={{
                 click: () => props.onVertexSelect(i),
                 dragstart: () => props.onVertexSelect(i),

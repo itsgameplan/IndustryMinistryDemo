@@ -2,6 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "motion/react";
+import { useT } from "@/lib/i18n";
 
 export const STATUS_COLOR = { healthy: "#2DBFB0", watch: "#E5A93B", critical: "#F0564A" } as const;
 
@@ -69,6 +70,7 @@ export function Gauge({ value, label }: { value: number; label: string }) {
 export interface TrendPoint { label: string; value: number }
 
 export function TrendChart({ data, color, baseline, alarm, unit, domain, invert }: { data: TrendPoint[]; color: string; baseline: number; alarm: number; unit: string; domain?: [number, number]; invert?: boolean }) {
+  const t = useT();
   const id = `trend-${color.replace("#", "")}`;
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -86,10 +88,10 @@ export function TrendChart({ data, color, baseline, alarm, unit, domain, invert 
           cursor={{ stroke: "rgba(255,255,255,0.25)" }}
           contentStyle={{ background: "#0B1F3A", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, fontSize: 12, color: "#fff" }}
           labelStyle={{ color: "rgba(255,255,255,0.55)" }}
-          formatter={(v) => [`${v} ${unit}`, "Reading"]}
+          formatter={(v) => [`${v} ${unit}`, t("Reading")]}
         />
-        <ReferenceLine y={baseline} stroke="rgba(255,255,255,0.4)" strokeDasharray="4 4" label={{ value: invert ? "Watch" : "Baseline", position: "insideTopLeft", fill: "rgba(255,255,255,0.5)", fontSize: 10 }} />
-        <ReferenceLine y={alarm} stroke="#F0564A" strokeDasharray="5 3" label={{ value: invert ? "Critical" : "Alarm", position: "insideTopLeft", fill: "#F0564A", fontSize: 10 }} />
+        <ReferenceLine y={baseline} stroke="rgba(255,255,255,0.4)" strokeDasharray="4 4" label={{ value: invert ? t("Watch") : t("Baseline"), position: "insideTopLeft", fill: "rgba(255,255,255,0.5)", fontSize: 10 }} />
+        <ReferenceLine y={alarm} stroke="#F0564A" strokeDasharray="5 3" label={{ value: invert ? t("Critical") : t("Alarm"), position: "insideTopLeft", fill: "#F0564A", fontSize: 10 }} />
         <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#${id})`} isAnimationActive={false} dot={false} activeDot={{ r: 4, fill: color, stroke: "#050E1F", strokeWidth: 2 }} />
       </AreaChart>
     </ResponsiveContainer>

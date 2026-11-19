@@ -8,6 +8,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cva, type VariantProps } from "class-variance-authority";
 import { X, FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 // ---------------- Button ----------------
 export const buttonVariants = cva(
@@ -110,6 +111,7 @@ export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 export function DialogContent({ className, children, title, description, ...props }: React.ComponentProps<typeof DialogPrimitive.Content> & { title: string; description?: string }) {
+  const t = useT();
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-navy-950/40 backdrop-blur-[2px] data-[state=open]:animate-in" />
@@ -120,7 +122,7 @@ export function DialogContent({ className, children, title, description, ...prop
         <DialogPrimitive.Title className="text-lg font-semibold tracking-tight text-navy-900">{title}</DialogPrimitive.Title>
         {description ? <DialogPrimitive.Description className="mt-1 text-sm text-muted">{description}</DialogPrimitive.Description> : <DialogPrimitive.Description className="sr-only">{title}</DialogPrimitive.Description>}
         <div className="mt-4">{children}</div>
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-muted hover:bg-canvas hover:text-navy-900" aria-label="Close">
+        <DialogPrimitive.Close className="absolute end-4 top-4 rounded-md p-1 text-muted hover:bg-canvas hover:text-navy-900" aria-label={t("Close")}>
           <X className="size-4" />
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
@@ -146,10 +148,11 @@ export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLab
 // ---------------- Demo disclaimer ----------------
 /** Required on any government certificate, licence, inspection, national statistic or AI assessment. */
 export function DemoDisclaimer({ children, className }: { children?: React.ReactNode; className?: string }) {
+  const t = useT();
   return (
     <div className={cn("flex items-start gap-2 rounded-lg border border-gold-300/60 bg-gold-50 px-3 py-2 text-xs text-gold-600", className)}>
       <FlaskConical className="mt-0.5 size-3.5 shrink-0" />
-      <span>{children ?? "Demonstration simulation with fictional data. Not an official Ministry of Industry record or authorisation."}</span>
+      <span>{children ?? t("Demonstration simulation with fictional data. Not an official Ministry of Industry record or authorisation.")}</span>
     </div>
   );
 }

@@ -2,11 +2,13 @@
 
 import type { CSSProperties, KeyboardEvent, FocusEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, ArrowLeft, Phone, Mail, MapPin, MessageCircle, BadgeCheck, Scissors, Layers, SearchCheck, Truck, Plus } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, ArrowLeft, Phone, Mail, MapPin, MessageCircle, BadgeCheck, Truck, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale, WebsiteContent } from "@/lib/types";
 import type { RegenSection } from "@/lib/data/website-seed";
-import { HeroArt, LogoMark, ProductArt, productKind } from "./site-illustrations";
+import { LogoMark, productKind } from "./site-illustrations";
+import { SITE_PHOTOS, unsplashUrl } from "./site-photos";
 
 export const SITE_THEMES: Record<WebsiteContent["theme"], { label: string; p: string; dark: string; soft: string; accent: string }> = {
   indigo: { label: "Indigo", p: "#3446A8", dark: "#161E52", soft: "#EEF0FB", accent: "#D1AE5C" },
@@ -91,7 +93,6 @@ const T = {
   },
 } as const;
 
-const PROCESS_ICONS = [Layers, BadgeCheck, Scissors, SearchCheck];
 
 type Tag = "h1" | "h2" | "h3" | "p" | "span";
 
@@ -174,8 +175,9 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
       {/* Hero */}
       <Shimmer active={regenerating === "hero"}>
         <section className="relative overflow-hidden bg-[var(--dark)] text-white">
-          <div className="absolute inset-0 opacity-[0.07] [background-image:repeating-linear-gradient(60deg,#fff_0_1px,transparent_1px_14px),repeating-linear-gradient(-60deg,#fff_0_1px,transparent_1px_14px)]" />
-          <div className="absolute -top-24 size-80 rounded-full bg-[var(--p)] opacity-40 blur-3xl ltr:-right-20 rtl:-left-20" />
+          <Image src={unsplashUrl(SITE_PHOTOS.heroBackdrop, 1600)} alt="" fill priority sizes="100vw" className="object-cover opacity-35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--dark)] via-[var(--dark)]/85 to-[var(--dark)]/40 rtl:bg-gradient-to-l" />
+          <div className="absolute -top-24 size-80 rounded-full bg-[var(--p)] opacity-30 blur-3xl ltr:-right-20 rtl:-left-20" />
           <div className="relative grid items-center gap-8 px-5 py-12 @3xl:grid-cols-[1.15fr_0.85fr] @3xl:px-10 @3xl:py-16">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/80">
@@ -188,7 +190,12 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
                 <span className="inline-flex items-center rounded-full border border-white/25 px-5 py-2.5 text-[13px] font-semibold text-white">{t.catalogue}</span>
               </div>
             </div>
-            <HeroArt className="mx-auto hidden w-full max-w-[300px] @2xl:block" />
+            <div className="relative mx-auto hidden aspect-[4/5] w-full max-w-[300px] overflow-hidden rounded-3xl shadow-2xl ring-4 ring-white/10 @2xl:block">
+              <Image src={unsplashUrl(SITE_PHOTOS.heroFeature, 700)} alt={SITE_PHOTOS.heroFeature.alt} fill sizes="300px" className="object-cover" />
+              <div className="absolute inset-x-3 bottom-3 rounded-2xl bg-white/90 px-3 py-2 text-[11.5px] font-semibold text-[var(--dark)] backdrop-blur">
+                {rtl ? "24 ماكينة تريكو دائرية" : "24 circular knitting machines"}
+              </div>
+            </div>
           </div>
         </section>
       </Shimmer>
@@ -213,8 +220,8 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
           <div className="mt-7 grid gap-4 @xl:grid-cols-2 @4xl:grid-cols-4">
             {content.products.map((p) => (
               <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-black/[0.07] bg-white transition-shadow hover:shadow-[0_14px_36px_-18px_rgba(0,0,0,0.3)]">
-                <div className="aspect-[16/10] overflow-hidden">
-                  <ProductArt kind={productKind(p.id, p.name.en)} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]" />
+                <div className="relative aspect-[16/10] overflow-hidden bg-[var(--soft)]">
+                  <Image src={unsplashUrl(SITE_PHOTOS.products[productKind(p.id, p.name.en)], 600)} alt={SITE_PHOTOS.products[productKind(p.id, p.name.en)].alt} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
                 </div>
                 <div className="flex flex-1 flex-col p-4">
                   <Editable as="h3" hint={t.editHint} value={p.name[locale] || "—"} onCommit={(v) => setProduct(p.id, "name", v)} className="block text-[15px] font-bold tracking-tight" />
@@ -242,7 +249,11 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
               <h2 className="mt-2 text-[22px] font-bold leading-tight tracking-tight @3xl:text-[26px]">{t.aboutTitle}</h2>
               <Editable as="p" multiline hint={t.editHint} value={content.about[locale]} onCommit={(v) => setLoc("about", v)} className="mt-4 block text-[14px] leading-[1.8] text-black/70" />
             </div>
-            <div className="rounded-2xl bg-white p-5 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.3)]">
+            <div className="overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_-18px_rgba(0,0,0,0.3)]">
+              <div className="relative aspect-[16/9]">
+                <Image src={unsplashUrl(SITE_PHOTOS.about, 700)} alt={SITE_PHOTOS.about.alt} fill sizes="(min-width: 1024px) 30vw, 100vw" className="object-cover" />
+              </div>
+              <div className="p-5">
               <div className="flex items-end gap-2">
                 <span className="text-[12px] font-medium text-black/50">{t.since}</span>
                 <span className="text-4xl font-bold tracking-tight text-[var(--p)]">2009</span>
@@ -255,6 +266,7 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
                   </div>
                 ))}
               </dl>
+              </div>
             </div>
           </div>
         </section>
@@ -266,15 +278,17 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
         <h2 className="mt-2 max-w-lg text-[22px] font-bold leading-tight tracking-tight @3xl:text-[26px]">{t.processTitle}</h2>
         <ol className="mt-7 grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-4">
           {t.process.map(([title, desc], i) => {
-            const Icon = PROCESS_ICONS[i];
+            const photo = SITE_PHOTOS.process[i];
             return (
-              <li key={title} className="relative rounded-2xl border border-black/[0.07] p-4">
-                <div className="flex items-center justify-between">
-                  <span className="grid size-9 place-items-center rounded-xl bg-[var(--soft)] text-[var(--p)]"><Icon className="size-4.5" /></span>
-                  <span className="text-[11px] font-bold tabular-nums text-black/25">0{i + 1}</span>
+              <li key={title} className="group relative overflow-hidden rounded-2xl border border-black/[0.07]">
+                <div className="relative aspect-[16/10] overflow-hidden bg-[var(--soft)]">
+                  <Image src={unsplashUrl(photo, 500)} alt={photo.alt} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
+                  <span className="absolute top-2.5 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold tabular-nums text-[var(--dark)] ltr:left-2.5 rtl:right-2.5">0{i + 1}</span>
                 </div>
-                <div className="mt-3 text-[14px] font-bold">{title}</div>
-                <div className="mt-1 text-[12.5px] leading-relaxed text-black/55">{desc}</div>
+                <div className="p-4">
+                  <div className="text-[14px] font-bold">{title}</div>
+                  <div className="mt-1 text-[12.5px] leading-relaxed text-black/55">{desc}</div>
+                </div>
               </li>
             );
           })}
@@ -336,7 +350,10 @@ export function SitePreview({ content, locale, regenerating, onEdit }: { content
 
       <footer className="flex flex-col items-start justify-between gap-2 border-t border-white/10 bg-[var(--dark)] px-5 py-5 text-[11.5px] text-white/45 @md:flex-row @md:items-center @3xl:px-10">
         <span>© {new Date().getFullYear()} {t.name}. {t.rights}</span>
-        <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[var(--accent)]" />{t.built}</span>
+        <span className="inline-flex items-center gap-3">
+          <span>{rtl ? "الصور: Unsplash" : "Photos: Unsplash"}</span>
+          <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[var(--accent)]" />{t.built}</span>
+        </span>
       </footer>
     </div>
   );
