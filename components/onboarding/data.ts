@@ -195,25 +195,9 @@ export const PLANS: { id: PlanId; name: string; tiers: string; priceEgp: number;
     id: "starter",
     name: "Starter",
     tiers: "For Tier 0–1 factories",
-    priceEgp: 24000,
+    priceEgp: 0,
     tagline: "Get visible and organised",
     features: ["AI-built bilingual website", "Policy & SOP starter workspace", "Maturity roadmap & tier tracking", "2 IMC service workspaces"],
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    tiers: "For Tier 2 factories",
-    priceEgp: 72000,
-    tagline: "Connect the back office",
-    features: ["Everything in Starter", "Compliance & safety workspaces", "Export and sales AI services", "6 IMC service workspaces", "Quarterly advisor review (simulated)"],
-  },
-  {
-    id: "industry40",
-    name: "Industry 4.0",
-    tiers: "For Tier 3–4 factories",
-    priceEgp: 180000,
-    tagline: "AI-driven operations",
-    features: ["Everything in Growth", "Predictive maintenance & digital twin", "Enterprise BI & process mining", "All 21 IMC service workspaces", "Dedicated transformation lead (simulated)"],
   },
 ];
 export const planForTier = (tier: TierLevel): PlanId => (tier <= 1 ? "starter" : tier === 2 ? "growth" : "industry40");

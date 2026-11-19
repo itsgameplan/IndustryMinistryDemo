@@ -49,11 +49,6 @@ export function StepPlan({ tier, plan, onSelect, onBack, onActivate }: { tier: T
                   {isSel ? <Check className="size-3 text-white" strokeWidth={3} /> : null}
                 </span>
               </div>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-xs font-semibold text-navy-500">{t("EGP")}</span>
-                <span className="text-3xl font-semibold tabular-nums tracking-tight text-navy-900">{formatNumber(p.priceEgp)}</span>
-                <span className="text-xs text-muted">{t("/ year")}</span>
-              </div>
               <div className="text-[11px] font-medium uppercase tracking-wider text-gold-600">{t("Illustrative")}</div>
               <p className="mt-3 text-sm font-medium text-navy-800">{t(p.tagline)}</p>
               <ul className="mt-3 space-y-2">
